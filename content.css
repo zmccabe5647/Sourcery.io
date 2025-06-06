@@ -1,0 +1,245 @@
+/* Floating Action Button */
+#sourcery-fab {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  cursor: pointer;
+  z-index: 10000;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#sourcery-fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+}
+
+.sourcery-fab-content {
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Modal Styles */
+#sourcery-modal,
+#sourcery-ai-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10001;
+}
+
+.sourcery-modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sourcery-modal-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.sourcery-modal-header {
+  padding: 20px 24px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 20px;
+}
+
+.sourcery-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.sourcery-close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sourcery-close-btn:hover {
+  color: #374151;
+}
+
+.sourcery-modal-body {
+  padding: 0 24px 24px;
+}
+
+/* Template List */
+.sourcery-template-list {
+  margin-bottom: 20px;
+}
+
+.sourcery-template-item {
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sourcery-template-item:hover {
+  border-color: #6366f1;
+  background: #f8faff;
+}
+
+.sourcery-template-item h4 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.sourcery-template-item p {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* AI Form */
+.sourcery-ai-form {
+  margin-bottom: 20px;
+}
+
+.sourcery-ai-form label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.sourcery-ai-form textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  resize: vertical;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.sourcery-ai-form textarea:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Template Preview */
+.sourcery-template-preview {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 12px 0;
+}
+
+.sourcery-subject,
+.sourcery-content {
+  margin-bottom: 12px;
+}
+
+.sourcery-subject strong,
+.sourcery-content strong {
+  color: #374151;
+  font-weight: 600;
+}
+
+.sourcery-content div {
+  margin-top: 8px;
+  white-space: pre-wrap;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* Buttons */
+.sourcery-btn-primary,
+.sourcery-btn-secondary {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.sourcery-btn-primary {
+  background: #6366f1;
+  color: white;
+}
+
+.sourcery-btn-primary:hover {
+  background: #4f46e5;
+}
+
+.sourcery-btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.sourcery-btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+.sourcery-modal-actions,
+.sourcery-ai-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .sourcery-modal-content {
+    width: 95%;
+    margin: 20px;
+  }
+  
+  .sourcery-modal-actions,
+  .sourcery-ai-actions {
+    flex-direction: column;
+  }
+  
+  .sourcery-btn-primary,
+  .sourcery-btn-secondary {
+    width: 100%;
+  }
+}
