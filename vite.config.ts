@@ -11,16 +11,27 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
+        main: resolve(__dirname, 'index.html'),
         popup: resolve(__dirname, 'popup.html'),
         dashboard: resolve(__dirname, 'dashboard.html'),
-        content: resolve(__dirname, 'content.js'),
-        background: resolve(__dirname, 'background.js'),
       },
       output: {
-        entryFileNames: '[name].js',
-        chunkFileNames: '[name].js',
-        assetFileNames: '[name].[ext]'
+        entryFileNames: (chunkInfo) => {
+          // Keep extension files in root for manifest.json
+          if (chunkInfo.name === 'popup' || chunkInfo.name === 'dashboard') {
+            return '[name].js';
+          }
+          return 'assets/[name]-[hash].js';
+        },
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name?.endsWith('.css')) {
+            return '[name].css';
+          }
+          return 'assets/[name]-[hash].[ext]';
+        }
       }
-    }
+    },
+    copyPublicDir: false
   }
 });

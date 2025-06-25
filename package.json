@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build-extension": "vite build && npm run copy-manifest",
-    "copy-manifest": "cp manifest.json dist/ && cp -r icons dist/ 2>/dev/null || true",
+    "build-extension": "vite build && npm run copy-extension-files",
+    "copy-extension-files": "cp manifest.json dist/ && cp -r icons dist/ 2>/dev/null || true && cp content.js dist/ && cp content.css dist/ && cp background.js dist/",
+    "package-extension": "npm run build-extension && cd dist && zip -r ../sourcery-extension.zip .",
     "lint": "eslint .",
     "preview": "vite preview"
   },

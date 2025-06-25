@@ -8,8 +8,36 @@
 
   if (!isGmail && !isOutlook) return;
 
+  // Configuration
+  const SUPABASE_URL = 'https://ozyzhxspevperusiozos.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96eXpoeHNwZXZwZXJ1c2lvem9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMzNDc3NTUsImV4cCI6MjA1ODkyMzc1NX0.0OksDWM1danG0JTfxs0aSjMw8MimE-VCRW2-Epkh5vE';
+
+  let fabButton = null;
+  let isInitialized = false;
+
+  // Initialize the extension
+  function init() {
+    if (isInitialized) return;
+    
+    // Wait for page to be ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(createFloatingButton, 2000);
+      });
+    } else {
+      setTimeout(createFloatingButton, 2000);
+    }
+    
+    isInitialized = true;
+  }
+
   // Create floating action button
   function createFloatingButton() {
+    // Remove existing button if any
+    if (fabButton) {
+      fabButton.remove();
+    }
+
     const button = document.createElement('div');
     button.id = 'sourcery-fab';
     button.innerHTML = `
@@ -27,6 +55,7 @@
     });
     
     document.body.appendChild(button);
+    fabButton = button;
   }
 
   // Show template selector modal
@@ -158,6 +187,7 @@
         modal.querySelector('#ai-result').style.display = 'block';
       } catch (error) {
         console.error('Failed to generate template:', error);
+        alert('Failed to generate template. Please try again.');
       }
     });
     
@@ -171,6 +201,7 @@
         modal.querySelector('#generated-content').textContent = template.content;
       } catch (error) {
         console.error('Failed to regenerate template:', error);
+        alert('Failed to regenerate template. Please try again.');
       }
     });
     
@@ -184,15 +215,18 @@
 
   // Generate AI template
   async function generateAITemplate(prompt, regenerate = false) {
-    // This would call your Supabase edge function
-    const response = await fetch('https://ozyzhxspevperusiozos.supabase.co/functions/v1/generate-template', {
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-template`, {
       method: 'POST',
       headers: {
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96eXpoeHNwZXZwZXJ1c2lvem9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMzNDc3NTUsImV4cCI6MjA1ODkyMzc1NX0.0OksDWM1danG0JTfxs0aSjMw8MimE-VCRW2-Epkh5vE',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ prompt, regenerate }),
     });
+    
+    if (!response.ok) {
+      throw new Error('Failed to generate template');
+    }
     
     return await response.json();
   }
@@ -250,53 +284,178 @@ Best regards,
     }
   }
 
-  // Gmail-specific insertion
+  // Gmail-specific insertion with improved selectors
   function insertIntoGmail(template) {
-    // Find subject field
-    const subjectField = document.querySelector('input[name="subjectbox"]') || 
-                        document.querySelector('[aria-label*="Subject"]');
-    if (subjectField) {
-      subjectField.value = template.subject;
-      subjectField.dispatchEvent(new Event('input', { bubbles: true }));
-    }
-    
-    // Find compose body
-    const composeBody = document.querySelector('[aria-label*="Message Body"]') ||
-                       document.querySelector('[contenteditable="true"]');
-    if (composeBody) {
-      composeBody.innerHTML = template.content.replace(/\n/g, '<br>');
-      composeBody.dispatchEvent(new Event('input', { bubbles: true }));
-    }
+    // Wait a bit for Gmail to load
+    setTimeout(() => {
+      // Find subject field - multiple selectors for different Gmail versions
+      const subjectSelectors = [
+        'input[name="subjectbox"]',
+        '[aria-label*="Subject"]',
+        '[placeholder*="Subject"]',
+        '.aoT'
+      ];
+      
+      let subjectField = null;
+      for (const selector of subjectSelectors) {
+        subjectField = document.querySelector(selector);
+        if (subjectField) break;
+      }
+      
+      if (subjectField) {
+        subjectField.value = template.subject;
+        subjectField.dispatchEvent(new Event('input', { bubbles: true }));
+        subjectField.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      
+      // Find compose body - multiple selectors for different Gmail versions
+      const bodySelectors = [
+        '[aria-label*="Message Body"]',
+        '[contenteditable="true"]',
+        '.Am.Al.editable',
+        '.editable',
+        'div[role="textbox"]'
+      ];
+      
+      let composeBody = null;
+      for (const selector of bodySelectors) {
+        const elements = document.querySelectorAll(selector);
+        for (const element of elements) {
+          // Check if this is likely the compose body (not a reply or other field)
+          if (element.offsetHeight > 50 && element.offsetWidth > 200) {
+            composeBody = element;
+            break;
+          }
+        }
+        if (composeBody) break;
+      }
+      
+      if (composeBody) {
+        composeBody.innerHTML = template.content.replace(/\n/g, '<br>');
+        composeBody.dispatchEvent(new Event('input', { bubbles: true }));
+        composeBody.dispatchEvent(new Event('change', { bubbles: true }));
+        
+        // Focus the body to ensure Gmail recognizes the content
+        composeBody.focus();
+      }
+      
+      // Show success message
+      showNotification('Template inserted successfully!');
+    }, 500);
   }
 
   // Outlook-specific insertion
   function insertIntoOutlook(template) {
-    // Find subject field
-    const subjectField = document.querySelector('[aria-label*="Subject"]') ||
-                        document.querySelector('input[placeholder*="Subject"]');
-    if (subjectField) {
-      subjectField.value = template.subject;
-      subjectField.dispatchEvent(new Event('input', { bubbles: true }));
-    }
+    setTimeout(() => {
+      // Find subject field
+      const subjectSelectors = [
+        '[aria-label*="Subject"]',
+        'input[placeholder*="Subject"]',
+        '[data-testid*="subject"]'
+      ];
+      
+      let subjectField = null;
+      for (const selector of subjectSelectors) {
+        subjectField = document.querySelector(selector);
+        if (subjectField) break;
+      }
+      
+      if (subjectField) {
+        subjectField.value = template.subject;
+        subjectField.dispatchEvent(new Event('input', { bubbles: true }));
+        subjectField.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      
+      // Find compose body
+      const bodySelectors = [
+        '[contenteditable="true"]',
+        '[aria-label*="Message body"]',
+        '[role="textbox"]'
+      ];
+      
+      let composeBody = null;
+      for (const selector of bodySelectors) {
+        const elements = document.querySelectorAll(selector);
+        for (const element of elements) {
+          if (element.offsetHeight > 50 && element.offsetWidth > 200) {
+            composeBody = element;
+            break;
+          }
+        }
+        if (composeBody) break;
+      }
+      
+      if (composeBody) {
+        composeBody.innerHTML = template.content.replace(/\n/g, '<br>');
+        composeBody.dispatchEvent(new Event('input', { bubbles: true }));
+        composeBody.dispatchEvent(new Event('change', { bubbles: true }));
+        composeBody.focus();
+      }
+      
+      showNotification('Template inserted successfully!');
+    }, 500);
+  }
+
+  // Show notification
+  function showNotification(message) {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #4F46E5;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 10002;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+    `;
+    notification.textContent = message;
     
-    // Find compose body
-    const composeBody = document.querySelector('[contenteditable="true"]') ||
-                       document.querySelector('[aria-label*="Message body"]');
-    if (composeBody) {
-      composeBody.innerHTML = template.content.replace(/\n/g, '<br>');
-      composeBody.dispatchEvent(new Event('input', { bubbles: true }));
-    }
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.remove();
+    }, 3000);
+  }
+
+  // Monitor for Gmail compose window changes
+  if (isGmail) {
+    // Watch for new compose windows
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === 1 && node.querySelector && 
+              (node.querySelector('[role="dialog"]') || node.classList?.contains('nH'))) {
+            // New compose window detected, ensure FAB is visible
+            setTimeout(createFloatingButton, 1000);
+          }
+        });
+      });
+    });
+    
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
   }
 
   // Initialize the extension
-  function init() {
-    // Wait for page to load
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', createFloatingButton);
-    } else {
-      createFloatingButton();
-    }
-  }
-
   init();
+
+  // Re-initialize if page changes (for SPAs like Gmail)
+  let currentUrl = window.location.href;
+  setInterval(() => {
+    if (window.location.href !== currentUrl) {
+      currentUrl = window.location.href;
+      setTimeout(() => {
+        if (!document.getElementById('sourcery-fab')) {
+          createFloatingButton();
+        }
+      }, 2000);
+    }
+  }, 1000);
 })();
